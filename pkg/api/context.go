@@ -8,6 +8,7 @@ import (
 
 type Context interface {
 	Abort(status int, err FailedResponse) error
+	InternalError(err ...ResponseError) error
 }
 
 type context struct {
@@ -16,6 +17,14 @@ type context struct {
 
 func (c context) Abort(status int, err FailedResponse) error {
 	c.GinContext.AbortWithStatusJSON(status, err)
+	return nil
+}
+
+func (c context) InternalError(err ...ResponseError) error {
+	c.GinContext.AbortWithStatusJSON(500, FailedResponse{
+		Code:   InternalError,
+		Errors: err,
+	})
 	return nil
 }
 

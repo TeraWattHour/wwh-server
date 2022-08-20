@@ -1,12 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
+	"github.com/gin-gonic/gin"
 	"github.com/terawatthour/we-were-here-server/pkg"
 	"github.com/terawatthour/we-were-here-server/pkg/data"
-	"github.com/terawatthour/we-were-here-server/schema"
 )
 
 func init() {
@@ -20,12 +19,9 @@ func init() {
 }
 
 func main() {
+	app := gin.Default()
 
-	user := schema.User{}
-	err := data.PostgresClient.QueryRow("SELECT * from user").Scan(&user)
-	if err != nil {
-		fmt.Println(err)
-	}
+	MountRoutes(app)
 
-	fmt.Println(user)
+	app.Run("localhost:8000")
 }

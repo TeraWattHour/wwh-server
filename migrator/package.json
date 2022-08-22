@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "migrate-up": "ts-node src/index.ts --migrate-up",
-    "migrate-down": "ts-node src/index.ts --migrate-down"
+    "migrate-up": "ts-node src/index.ts --migrate up",
+    "migrate-down": "ts-node src/index.ts --migrate down",
+    "migrate-latest": "ts-node src/index.ts --migrate latest"
   },
   "author": "",
   "license": "ISC",
@@ -13,12 +14,14 @@
     "printWidth": 130
   },
   "devDependencies": {
+    "@types/argparse": "^2.0.10",
     "@types/pg": "^8.6.5",
     "ts-node": "^10.9.1",
     "ts-node-dev": "^2.0.0",
     "typescript": "^4.7.4"
   },
   "dependencies": {
+    "argparse": "^2.0.1",
     "dotenv": "^16.0.1",
     "kysely": "^0.21.3",
     "pg": "^8.7.3"

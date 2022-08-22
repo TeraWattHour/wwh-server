@@ -14,7 +14,7 @@ func init() {
 	}
 
 	if err := data.EstablishPostgresConnection(); err != nil {
-		log.Fatal("Error establishing postgres connection... ", err)
+		log.Fatal("Error establishing Postgres connection... ", err)
 	}
 }
 

@@ -1,46 +1,62 @@
 package api
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
-
-	"github.com/gin-gonic/gin"
+	"net/http"
+	"time"
 )
 
-type Context interface {
-	Abort(status int, err FailedResponse) error
-	InternalError(err ...ResponseError) error
-}
+type HandlerFunc func(w Writer, r *http.Request) error
 
-type context struct {
-	GinContext *gin.Context
-}
-
-func (c context) Abort(status int, err FailedResponse) error {
-	c.GinContext.AbortWithStatusJSON(status, err)
-	return nil
-}
-
-func (c context) InternalError(err ...ResponseError) error {
-	c.GinContext.AbortWithStatusJSON(500, FailedResponse{
-		Code:   InternalError,
-		Errors: err,
-	})
-	return nil
-}
-
-func W(h func(c *gin.Context, C Context) error) func(c *gin.Context) {
-	return func(c *gin.Context) {
-		wrapper := context{GinContext: c}
-		err := h(c, wrapper)
-		if err != nil {
-			if c.Writer.Size() <= 0 {
-				c.AbortWithStatusJSON(500, FailedResponse{
-					Code: InternalError,
-				})
-				InternalLogger.Println("Unhandled internal error thrown... ", err)
-				return
-			}
-			fmt.Println("Unhandled error... ", err)
-		}
+func (h HandlerFunc) ServeHTTP(w Writer, r *http.Request) {
+	err := h(w, r)
+	if err != nil {
+		w.JSON(500, Response{Code: InternalError})
+		fmt.Println("An unhandled error occured... ", err)
 	}
+}
+
+type Writer interface {
+	JSON(status int, body Response) error
+}
+
+type writer struct {
+	http.ResponseWriter
+	wasWritten bool
+}
+
+func (w *writer) JSON(status int, body Response) error {
+	if w.wasWritten {
+		return errors.New("headers were aleady written")
+	}
+	w.wasWritten = true
+	w.WriteHeader(status)
+	w.Header().Add("Content-Type", "application/json")
+	x, err := json.Marshal(body)
+	if err != nil {
+		return err
+	}
+
+	w.Write(x)
+	return nil
+}
+
+func NewWriter(w http.ResponseWriter) Writer {
+	return &writer{wasWritten: false, ResponseWriter: w}
+}
+
+func W(h HandlerFunc) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		dw := &writer{wasWritten: false, ResponseWriter: w}
+		start := time.Now()
+		h.ServeHTTP(dw, r)
+		end := time.Now()
+		fmt.Println(end.Sub(start))
+		if dw.wasWritten {
+			return
+		}
+		dw.WriteHeader(http.StatusOK)
+	})
 }

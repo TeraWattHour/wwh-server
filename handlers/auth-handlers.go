@@ -1,7 +1,9 @@
 package handlers
 
 import (
-	"github.com/gin-gonic/gin"
+	"net/http"
+
+	"github.com/gorilla/mux"
 	"github.com/jmoiron/sqlx"
 	"github.com/terawatthour/we-were-here-server/pkg/api"
 )
@@ -11,19 +13,19 @@ type authHandlers struct {
 }
 
 type AuthHandlers interface {
-	Mount(app *gin.Engine)
-	googleEndpoint(c *gin.Context, ctx api.Context) error
+	Mount(r *mux.Router)
+	googleCallback(w api.Writer, r *http.Request) error
 }
 
 func NewAuthHandlers(PostgresClient *sqlx.DB) AuthHandlers {
 	return &authHandlers{PostgresClient: PostgresClient}
 }
 
-func (ctr authHandlers) Mount(app *gin.Engine) {
-	auth := app.Group("api/v1/auth")
-	auth.GET("/")
+func (ctr authHandlers) Mount(r *mux.Router) {
+	auth := r.NewRoute().PathPrefix("/api/v1/auth").Subrouter()
+	auth.Handle("/google/callback", api.W(ctr.googleCallback))
 }
 
-func (ctr authHandlers) googleEndpoint(c *gin.Context, ctx api.Context) error {
+func (ctr authHandlers) googleCallback(w api.Writer, r *http.Request) error {
 	return nil
 }

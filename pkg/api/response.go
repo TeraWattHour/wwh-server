@@ -1,6 +1,6 @@
 package api
 
-type FailedResponse struct {
+type Response struct {
 	Code   string          `json:"code,omitempty"`
 	Errors []ResponseError `json:"errors,omitempty"`
 	Data   string          `json:"data,omitempty"`

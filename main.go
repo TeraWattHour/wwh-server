@@ -2,8 +2,9 @@ package main
 
 import (
 	"log"
+	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gorilla/mux"
 	"github.com/terawatthour/we-were-here-server/pkg"
 	"github.com/terawatthour/we-were-here-server/pkg/data"
 )
@@ -19,9 +20,10 @@ func init() {
 }
 
 func main() {
-	app := gin.Default()
+	r := mux.NewRouter()
 
-	MountRoutes(app)
+	MountRoutes(r)
 
-	app.Run("localhost:8000")
+	http.ListenAndServe("localhost:8000", r)
+	// app.Run("localhost:8000")
 }
